@@ -5,6 +5,7 @@
 HMODULE MainModuleHandle;
 LRESULT CALLBACK MainWindowProc(HWND, UINT, WPARAM, LPARAM);
 HWND HandleMainWindow;
+HMENU MainMenu;
 
 int main () 
 {
@@ -38,7 +39,7 @@ int RegisterMainWindowClass (HMODULE MainModuleHandle)
 	MainWindowClass.hInstance = MainModuleHandle;
 	MainWindowClass.lpfnWndProc = (WNDPROC)MainWindowProc;
 	MainWindowClass.lpszClassName = "MainWClass";
-	MainWindowClass.lpszMenuName = NULL;
+	MainWindowClass.lpszMenuName = "MenuM";
 	MainWindowClass.style = CS_HREDRAW | CS_VREDRAW;
 	
 	return RegisterClassEx(&MainWindowClass);
@@ -65,6 +66,8 @@ int CreateMainWindow(HINSTANCE MainModuleHandle, int nCmdShow)
 	int ResultUpdateWindowFunc = UpdateWindow(HandleMainWindow);
 	// title-bar re-rendering
 	SetWindowText(HandleMainWindow, "Крестики и нолики");
+	MainMenu = LoadMenu(MainModuleHandle, "MenuM");
+	SetMenu(HandleMainWindow, MainMenu);
 } 
 
 LRESULT CALLBACK MainWindowProc(HWND HandleMainWindow, UINT Msg, WPARAM wParam, LPARAM lParam)
@@ -77,6 +80,19 @@ LRESULT CALLBACK MainWindowProc(HWND HandleMainWindow, UINT Msg, WPARAM wParam, 
 				HDC HandleDisplayDeviceContext = BeginPaint(HandleMainWindow, &MainPaintStruct);
 				EndPaint(HandleMainWindow, &MainPaintStruct);
 				return 0;	
+			}
+		case WM_COMMAND:
+			if ((0 == lParam) & (0 == HIWORD(wParam))) // menu command
+			{ 
+			switch(LOWORD(wParam)){
+				case 2: // EXIT COMMAND
+				{
+					PostQuitMessage(0);
+					return 0;
+				}
+				return 0;
+			}
+			return 0;
 			}			
 		case WM_CREATE: 
 			return 0;
