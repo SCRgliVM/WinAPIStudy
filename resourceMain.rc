@@ -1,0 +1,14 @@
+MenuM MENU
+{
+	POPUP "&Игра"
+	{
+		MENUITEM "Новая игра", 1
+		MENUITEM SEPARATOR
+		MENUITEM "Выход", 2
+	}
+	POPUP "&Справка"
+	{
+		MENUITEM "Просмотреть справку\tF1", 3
+		MENUITEM "О программе...", 4
+	}
+}
