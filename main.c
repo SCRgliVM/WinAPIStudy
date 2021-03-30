@@ -1,3 +1,4 @@
+// compiled and worked in TDM-GCC 4.9.2 64-bit Profiling
 #include <windows.h>
 #include <stdio.h>
 
@@ -7,10 +8,10 @@ HWND HandleMainWindow;
 
 int main () 
 {
-	MainModuleHandle = GetModuleHandleA(NULL);
+	MainModuleHandle = GetModuleHandle(NULL);
 	ATOM AtomMainWindowClass = (ATOM)RegisterMainWindowClass(MainModuleHandle);
 	CreateMainWindow(MainModuleHandle, SW_SHOW);
-	
+	// main message loop 
 	MSG messageStruct;
 	BOOL returnGetMessageinMainLoopMessageHandling;
 	while(GetMessage(&messageStruct, (HWND)NULL, 0, 0))
@@ -18,13 +19,11 @@ int main ()
 		TranslateMessage(&messageStruct);
 		DispatchMessage(&messageStruct);
 	}
-	//printf("MainModuleHandle = %x\nAtomMainWindowClass = %x", MainModuleHandle, AtomMainWindowClass);
 	return 0;	
 }
 
-//int WINAPI WinMain(HINSTANCE, (HINSTANCE)NULL, )
-
 int RegisterMainWindowClass (HMODULE MainModuleHandle)
+// Register main window class
 {
 	WNDCLASSEXA MainWindowClass;
 	MainWindowClass.cbClsExtra = 0;
@@ -46,11 +45,12 @@ int RegisterMainWindowClass (HMODULE MainModuleHandle)
 }
 
 int CreateMainWindow(HINSTANCE MainModuleHandle, int nCmdShow)
+// Create main window
 {
 	HandleMainWindow = CreateWindowEx(
 	WS_EX_LEFT,
 	"MainWClass",
-	"Title",
+	"Крестики и нолики",
 	WS_OVERLAPPEDWINDOW, 
 	CW_USEDEFAULT,
 	CW_USEDEFAULT,
@@ -63,10 +63,12 @@ int CreateMainWindow(HINSTANCE MainModuleHandle, int nCmdShow)
 	);
 	int ResultShowWindowFunc = ShowWindow(HandleMainWindow, nCmdShow);
 	int ResultUpdateWindowFunc = UpdateWindow(HandleMainWindow);
-	//printf("HandleMainWindow = %x\nResultShowWindowFunc = %x\n", HandleMainWindow, ResultShowWindowFunc);
+	// title-bar re-rendering
+	SetWindowText(HandleMainWindow, "Крестики и нолики");
 } 
 
 LRESULT CALLBACK MainWindowProc(HWND HandleMainWindow, UINT Msg, WPARAM wParam, LPARAM lParam)
+// main window proc
 {
 	switch(Msg){
 		case WM_PAINT:
