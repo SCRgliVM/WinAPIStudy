@@ -1,14 +1,14 @@
 MenuM MENU
 {
-	POPUP "&Игра"
+	POPUP "&РРіСЂР°"
 	{
-		MENUITEM "Новая игра", 1
+		MENUITEM "РќРѕРІР°СЏ РёРіСЂР°", 1
 		MENUITEM SEPARATOR
-		MENUITEM "Выход", 2
+		MENUITEM "Р’С‹С…РѕРґ", 2
 	}
-	POPUP "&Справка"
+	POPUP "&РЎРїСЂР°РІРєР°"
 	{
-		MENUITEM "Просмотреть справку\tF1", 3
-		MENUITEM "О программе...", 4
+		MENUITEM "РџСЂРѕСЃРјРѕС‚СЂРµС‚СЊ СЃРїСЂР°РІРєСѓ\tF1", 3
+		MENUITEM "Рћ РїСЂРѕРіСЂР°РјРјРµ...", 4
 	}
 }
