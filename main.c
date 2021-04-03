@@ -6,6 +6,10 @@ HMODULE MainModuleHandle;
 LRESULT CALLBACK MainWindowProc(HWND, UINT, WPARAM, LPARAM);
 HWND HandleMainWindow;
 HMENU MainMenu;
+HPEN GridPenHandle;
+int x, y, nWidth, nHeight, metricX, metricY;
+LONG Height, Width;
+HDC HandleDisplayDeviceContext;
 
 int main () 
 {
@@ -48,15 +52,17 @@ int RegisterMainWindowClass (HMODULE MainModuleHandle)
 int CreateMainWindow(HINSTANCE MainModuleHandle, int nCmdShow)
 // Create main window
 {
+	GridPenHandle = CreatePen(PS_SOLID, 5, 0x00FF0000);
+	GetMainWindowSize();
 	HandleMainWindow = CreateWindowEx(
 	WS_EX_LEFT,
 	"MainWClass",
-	"Крестики и нолики",
+	"Êðåñòèêè è íîëèêè",
 	WS_OVERLAPPEDWINDOW, 
-	CW_USEDEFAULT,
-	CW_USEDEFAULT,
-	CW_USEDEFAULT,
-	CW_USEDEFAULT,
+	x,
+	y,
+	nWidth,
+	nHeight,
 	(HWND)NULL,
 	(HMENU)NULL,
 	(HINSTANCE)MainModuleHandle,
@@ -65,7 +71,7 @@ int CreateMainWindow(HINSTANCE MainModuleHandle, int nCmdShow)
 	int ResultShowWindowFunc = ShowWindow(HandleMainWindow, nCmdShow);
 	int ResultUpdateWindowFunc = UpdateWindow(HandleMainWindow);
 	// title-bar re-rendering
-	SetWindowText(HandleMainWindow, "Крестики и нолики");
+	SetWindowText(HandleMainWindow, "Êðåñòèêè è íîëèêè");
 	MainMenu = LoadMenu(MainModuleHandle, "MenuM");
 	SetMenu(HandleMainWindow, MainMenu);
 } 
@@ -77,7 +83,13 @@ LRESULT CALLBACK MainWindowProc(HWND HandleMainWindow, UINT Msg, WPARAM wParam, 
 		case WM_PAINT:
 			{
 				PAINTSTRUCT MainPaintStruct;
-				HDC HandleDisplayDeviceContext = BeginPaint(HandleMainWindow, &MainPaintStruct);
+				HandleDisplayDeviceContext = BeginPaint(HandleMainWindow, &MainPaintStruct);
+				GetMetricWindow();
+				PaintGrid();
+				//char bufe[128];
+				//wsprintf(bufe, "Width: %d\nHeight: %d", Width, Height);
+				//MessageBox(HandleMainWindow, bufe,"C",MB_OK);
+				//LineTo(HandleDisplayDeviceContext, 50, 50);
 				EndPaint(HandleMainWindow, &MainPaintStruct);
 				return 0;	
 			}
@@ -90,7 +102,12 @@ LRESULT CALLBACK MainWindowProc(HWND HandleMainWindow, UINT Msg, WPARAM wParam, 
 					PostQuitMessage(0);
 					return 0;
 				}
-				return 0;
+				default:
+					{
+					char buf[256];
+					wsprintf(buf, "Command code: %d", LOWORD(wParam));
+					MessageBox(HandleMainWindow, buf, "Caption", MB_OK);
+				}
 			}
 			return 0;
 			}			
@@ -106,5 +123,50 @@ LRESULT CALLBACK MainWindowProc(HWND HandleMainWindow, UINT Msg, WPARAM wParam, 
 		default:
 			return DefWindowProc(HandleMainWindow, Msg, wParam, lParam);
 	}
+	return 0;
+}
+
+int GetMainWindowSize()
+{
+ 	//x = GetSystemMetrics(SM_CXSCREEN) / 4;	
+ 	y = GetSystemMetrics(SM_CYSCREEN) / 4;
+ 	x = y;
+ 	nWidth = 2*x+GetSystemMetrics(SM_CYBORDER);
+	nHeight = 2*y+GetSystemMetrics(SM_CYMENU)+GetSystemMetrics(SM_CYCAPTION);
+}
+
+int PaintGrid(){
+	SelectObject(HandleDisplayDeviceContext, GridPenHandle);
+	LONG mHeight, mWidth;
+	if (Width >= Height){
+		mHeight = (Height/3);
+	}
+	else{
+		mHeight = (Width/3);
+		Height = Width;
+	}
+		MoveToEx(HandleDisplayDeviceContext, metricX+mHeight, metricY, (LPPOINT)NULL);
+		LineTo(HandleDisplayDeviceContext, metricX+mHeight, metricY+Height);
+		MoveToEx(HandleDisplayDeviceContext, metricX+2*mHeight, metricY, (LPPOINT)NULL);
+		LineTo(HandleDisplayDeviceContext, metricX+2*mHeight, metricY+Height);
+		MoveToEx(HandleDisplayDeviceContext, metricX, metricY+mHeight, (LPPOINT)NULL);
+		LineTo(HandleDisplayDeviceContext, metricX+Height, metricY+mHeight);
+		MoveToEx(HandleDisplayDeviceContext, metricX, metricY+2*mHeight, (LPPOINT)NULL);
+		LineTo(HandleDisplayDeviceContext, metricX+Height, metricY+2*mHeight);
+		return 0;
+}
+
+int GetMetricWindow(){
+	RECT Metric;
+	GetClientRect(HandleMainWindow, &Metric);
+	Width = Metric.right - Metric.left;
+	Height = Metric.bottom - Metric.top;
+	if (Width >= Height){
+		metricY = 0;
+		metricX = (int)((Width - Height)/2);
+		return 0;
+	}
+	metricX = 0;
+	metricY = (int)((Height - Width)/2);
 	return 0;
 }
