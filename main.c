@@ -10,9 +10,36 @@ HPEN GridPenHandle;
 int x, y, nWidth, nHeight, metricX, metricY;
 LONG Height, Width;
 HDC HandleDisplayDeviceContext;
+int xRectangle, yRectangle;
+LONG mHeight, mWidth;
+PAINTSTRUCT MainPaintStruct;
+struct RECORDINTABLE {
+	int visible;
+	int OorY; 
+	int top;
+	int bottom;
+	int left;
+	int right;
+};
+struct RECORDINTABLE MainTable[9];
+int IndexArray[3][3];
 
 int main () 
 {
+	IndexArray[0][0] = 0;
+IndexArray[0][1] = 1;
+IndexArray[0][2] = 2;
+IndexArray[1][0] = 3;
+IndexArray[1][1] = 4;
+IndexArray[1][2] = 5;
+IndexArray[2][0] = 6;
+IndexArray[2][1] = 7;
+IndexArray[2][2] = 8;
+	int i1 = 0;
+	while(i1<9){
+		MainTable[i1].visible = 0;
+		i1++;
+	}
 	MainModuleHandle = GetModuleHandle(NULL);
 	ATOM AtomMainWindowClass = (ATOM)RegisterMainWindowClass(MainModuleHandle);
 	CreateMainWindow(MainModuleHandle, SW_SHOW);
@@ -57,8 +84,8 @@ int CreateMainWindow(HINSTANCE MainModuleHandle, int nCmdShow)
 	HandleMainWindow = CreateWindowEx(
 	WS_EX_LEFT,
 	"MainWClass",
-	"Êðåñòèêè è íîëèêè",
-	WS_OVERLAPPEDWINDOW, 
+	"Крестики и нолики",
+	WS_OVERLAPPEDWINDOW ^ WS_THICKFRAME, 
 	x,
 	y,
 	nWidth,
@@ -71,7 +98,7 @@ int CreateMainWindow(HINSTANCE MainModuleHandle, int nCmdShow)
 	int ResultShowWindowFunc = ShowWindow(HandleMainWindow, nCmdShow);
 	int ResultUpdateWindowFunc = UpdateWindow(HandleMainWindow);
 	// title-bar re-rendering
-	SetWindowText(HandleMainWindow, "Êðåñòèêè è íîëèêè");
+	SetWindowText(HandleMainWindow, "Крестики и нолики");
 	MainMenu = LoadMenu(MainModuleHandle, "MenuM");
 	SetMenu(HandleMainWindow, MainMenu);
 } 
@@ -82,10 +109,10 @@ LRESULT CALLBACK MainWindowProc(HWND HandleMainWindow, UINT Msg, WPARAM wParam, 
 	switch(Msg){
 		case WM_PAINT:
 			{
-				PAINTSTRUCT MainPaintStruct;
 				HandleDisplayDeviceContext = BeginPaint(HandleMainWindow, &MainPaintStruct);
 				GetMetricWindow();
 				PaintGrid();
+				PaintSymbol();
 				//char bufe[128];
 				//wsprintf(bufe, "Width: %d\nHeight: %d", Width, Height);
 				//MessageBox(HandleMainWindow, bufe,"C",MB_OK);
@@ -93,6 +120,41 @@ LRESULT CALLBACK MainWindowProc(HWND HandleMainWindow, UINT Msg, WPARAM wParam, 
 				EndPaint(HandleMainWindow, &MainPaintStruct);
 				return 0;	
 			}
+		case WM_LBUTTONUP:
+			{
+			RECT ClientArea;
+				GetClientRect(HandleMainWindow, &ClientArea);
+				LONG ClientAreaHeight, ClientAreaWidth;
+				ClientAreaHeight = ClientArea.bottom - ClientArea.top;
+				ClientAreaWidth = ClientArea.right - ClientArea.left;
+				WORD xLbuttonUp, yLbuttonUp;
+				xLbuttonUp = LOWORD(lParam);
+				yLbuttonUp = HIWORD(lParam);
+				if (xLbuttonUp <= ClientAreaWidth/3){
+					xRectangle = 1;
+				}
+				else if (xLbuttonUp <= 2*ClientAreaWidth/3){
+					xRectangle = 2;
+				}
+				else{
+					xRectangle = 3;
+				}
+				if (yLbuttonUp <= ClientAreaHeight/3){
+						yRectangle = 1;
+					}
+					else if (yLbuttonUp <= 2*ClientAreaHeight/3){
+						yRectangle = 2;
+					}
+					else{
+						yRectangle = 3;
+					}
+				InputRecord();
+				//char bufe[128];
+				//wsprintf(bufe, "xRectangle: %d\nyRectangle: %d", xRectangle, yRectangle);
+				//MessageBox(HandleMainWindow, bufe,"C",MB_OK);
+				InvalidateRect(HandleMainWindow, NULL, 0);
+				return 0;
+		}
 		case WM_COMMAND:
 			if ((0 == lParam) & (0 == HIWORD(wParam))) // menu command
 			{ 
@@ -137,7 +199,6 @@ int GetMainWindowSize()
 
 int PaintGrid(){
 	SelectObject(HandleDisplayDeviceContext, GridPenHandle);
-	LONG mHeight, mWidth;
 	if (Width >= Height){
 		mHeight = (Height/3);
 	}
@@ -168,5 +229,40 @@ int GetMetricWindow(){
 	}
 	metricX = 0;
 	metricY = (int)((Height - Width)/2);
+	return 0;
+}
+
+int PaintSymbol(){
+	int tmpIndex1 = 0;
+	while (tmpIndex1 < 9){
+		if (MainTable[tmpIndex1].visible == 1){
+			if (MainTable[tmpIndex1].OorY == 0){
+				int ResultEllipse = Ellipse(HandleDisplayDeviceContext, MainTable[tmpIndex1].left, MainTable[tmpIndex1].top,
+				MainTable[tmpIndex1].right, MainTable[tmpIndex1].bottom);
+				//char bufer1[256];
+	   			//wsprintf(bufer1, "ResultEllipse: %d", ResultEllipse);
+		  		//MessageBox(HandleMainWindow, bufer1, "Caption", MB_OK);
+			}
+		}
+		tmpIndex1++;
+	}
+	return 0;
+}
+
+
+
+int InputRecord(){
+	int tmpIndex = IndexArray[yRectangle-1][xRectangle-1];
+	MainTable[tmpIndex].visible = 1;
+	MainTable[tmpIndex].OorY = 0;
+	MainTable[tmpIndex].bottom = (metricY+(yRectangle - 1)*mHeight) + 8*(mHeight/9);
+	MainTable[tmpIndex].left = (metricX+(xRectangle - 1)*mHeight) + mHeight/9;
+	MainTable[tmpIndex].right = (metricX+(xRectangle - 1)*mHeight) + 8*(mHeight/9);
+	MainTable[tmpIndex].top = (metricY+(yRectangle - 1)*mHeight) + mHeight/9;
+	
+	//char bufer2[256];
+	//wsprintf(bufer2, "left: %d\ntop: %d\nright: %d\nbottom: %d", MainTable[tmpIndex].left,
+	//MainTable[tmpIndex].top,MainTable[tmpIndex].right,MainTable[tmpIndex].bottom);
+	//MessageBox(HandleMainWindow, bufer2, "Caption", MB_OK);
 	return 0;
 }
